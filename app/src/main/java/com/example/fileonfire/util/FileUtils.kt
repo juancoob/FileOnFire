@@ -6,15 +6,25 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import com.crashlytics.android.Crashlytics
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStream
 
-fun from(context: Context, uri: Uri) {
+fun from(context: Context, uri: Uri): File? {
     val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-    val fileName: String? = getFileName(context, uri)
-    fileName?.let {
-        val splitFileName: Array<String> = splitFileName(it)
-
+    val fileName: String = getFileName(context, uri) ?: return null //todo get correct filename
+    val splitFileName: Array<String> = splitFileName(fileName)
+    val tempFile: File = File.createTempFile(splitFileName[0], splitFileName[1])
+    lateinit var outputStream: FileOutputStream
+    if (fileName == tempFile.name) {
+        tempFile.deleteOnExit()
+        outputStream = FileOutputStream(tempFile)
     }
+    inputStream?.let {
+        copy(inputStream, outputStream)
+        inputStream.close()
+    }
+    outputStream.close()
+    return tempFile
 }
 
 private fun getFileName(context: Context, uri: Uri): String? {
@@ -27,7 +37,7 @@ private fun getFileName(context: Context, uri: Uri): String? {
                 result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
             }
         } catch (e: Exception) {
-            Crashlytics.log(e.toString())
+            Crashlytics.logException(e)
         } finally {
             cursor?.close()
         }
@@ -48,9 +58,16 @@ private fun splitFileName(filename: String): Array<String> {
     var name = filename
     var extension = ""
     val lastIndexOf: Int = filename.lastIndexOf(".")
-    if(lastIndexOf != -1) {
+    if (lastIndexOf != -1) {
         name = filename.substring(0, lastIndexOf)
         extension = filename.substring(lastIndexOf)
     }
     return arrayOf(name, extension)
+}
+
+private fun copy(inputStream: InputStream, outputStream: FileOutputStream) {
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    while (EOF != inputStream.read(buffer)) {
+        outputStream.write(buffer)
+    }
 }

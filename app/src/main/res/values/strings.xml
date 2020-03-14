@@ -13,6 +13,7 @@
 
     <!-- Toasts -->
     <string name="failed_open_picture">Failed to open a picture</string>
+    <string name="failed_read_picture">Failed to read a picture</string>
 
     <!-- Content descriptions -->
     <string name="original_image_to_compare">First image to compare</string>
