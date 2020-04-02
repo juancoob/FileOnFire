@@ -60,16 +60,17 @@ class MainFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == CHOOSE_IMAGE_REQUEST && resultCode == RESULT_OK) {
+        if (requestCode == CHOOSE_IMAGE_REQUEST && resultCode == RESULT_OK) {
             if (data == null || data.data == null || context == null) {
                 Toast.makeText(context, R.string.failed_open_picture, Toast.LENGTH_SHORT).show()
                 return
             }
             try {
-                currentFile = from(context!!, data.data!!)?.also {
-                    binding.originalImageView.setImageBitmap(loadBitmap(it))
-                    // todo Add size: binding.originalSizeTextView.setText(String.format(getString(R.string.actual_size), it.))
-                }
+                currentFile = from(context!!, data.data!!).also {
+                    binding.originalImageView.setImageBitmap(loadBitmap(it.keys.first()))
+                    binding.originalSizeTextView.text =
+                        String.format(getString(R.string.actual_size), it.values.first())
+                }.keys.first()
             } catch (e: IOException) {
                 Crashlytics.logException(e)
                 Toast.makeText(context, R.string.failed_read_picture, Toast.LENGTH_SHORT).show()

@@ -9,32 +9,39 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-fun from(context: Context, uri: Uri): File? {
+fun from(context: Context, uri: Uri): Map<File, Long> {
     val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-    val fileName: String = getFileName(context, uri) ?: return null //todo get correct filename
+    val fileData: Map<String, Long> = getFileData(context, uri)
+    val fileName: String = fileData.keys.first()
     val splitFileName: Array<String> = splitFileName(fileName)
     val tempFile: File = File.createTempFile(splitFileName[0], splitFileName[1])
-    lateinit var outputStream: FileOutputStream
-    if (fileName == tempFile.name) {
-        tempFile.deleteOnExit()
-        outputStream = FileOutputStream(tempFile)
-    }
+    val fileOutputStream = FileOutputStream(tempFile)
+    val outputData: HashMap<File, Long> = HashMap()
+    tempFile.deleteOnExit()
+
     inputStream?.let {
-        copy(inputStream, outputStream)
+        copy(inputStream, fileOutputStream)
         inputStream.close()
     }
-    outputStream.close()
-    return tempFile
+    fileOutputStream.close()
+
+    // Set the data on the file
+    outputData[tempFile] = fileData.values.first()
+    return outputData
 }
 
-private fun getFileName(context: Context, uri: Uri): String? {
-    var result: String? = null
+private fun getFileData(context: Context, uri: Uri): Map<String, Long> {
+    var fileName: String? = null
+    var fileSize = 0L
+    val fileData: HashMap<String, Long> = HashMap()
+    // Get the current filename
     if (uri.scheme.equals("content")) {
         val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
         try {
             cursor?.let {
                 cursor.moveToFirst()
-                result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                fileSize = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE))
             }
         } catch (e: Exception) {
             Crashlytics.logException(e)
@@ -42,22 +49,29 @@ private fun getFileName(context: Context, uri: Uri): String? {
             cursor?.close()
         }
     }
-    result.let {
-        result = uri.path
-        result?.let {
+
+    // If the previous procedure fails, get the name from the uri path
+    if(fileName == null) {
+        fileName = uri.path
+        fileName?.let {
             val cut = it.lastIndexOf(File.separator)
+            // If there is an occurrence, get the name without the first slash
             if (cut != -1) {
-                return it.substring(cut + 1)
+                fileName = it.substring(cut + 1)
             }
         }
     }
-    return result
+
+    // Set the data in a hashmap
+    fileData[fileName ?: ""] = fileSize
+    return fileData
 }
 
 private fun splitFileName(filename: String): Array<String> {
     var name = filename
     var extension = ""
     val lastIndexOf: Int = filename.lastIndexOf(".")
+    // If there is an occurrence
     if (lastIndexOf != -1) {
         name = filename.substring(0, lastIndexOf)
         extension = filename.substring(lastIndexOf)
@@ -65,9 +79,9 @@ private fun splitFileName(filename: String): Array<String> {
     return arrayOf(name, extension)
 }
 
-private fun copy(inputStream: InputStream, outputStream: FileOutputStream) {
+private fun copy(inputStream: InputStream, fileOutputStream: FileOutputStream) {
     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
     while (EOF != inputStream.read(buffer)) {
-        outputStream.write(buffer)
+        fileOutputStream.write(buffer)
     }
 }
