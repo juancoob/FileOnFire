@@ -1,40 +1,53 @@
 package com.example.fileonfire.util
 
 import android.content.Context
+import android.content.res.Resources
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.crashlytics.android.Crashlytics
+import com.example.fileonfire.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-fun from(context: Context, uri: Uri): Map<File, Long> {
-    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+enum class Size {
+    Bytes, KB, MB, GB
+}
+
+/**
+ * This method gets the file data with [context] and [uri] to copy it on a different file
+ */
+fun from(context: Context, uri: Uri): Map<File, String> {
     val fileData: Map<String, Long> = getFileData(context, uri)
     val fileName: String = fileData.keys.first()
+
     val splitFileName: Array<String> = splitFileName(fileName)
     val tempFile: File = File.createTempFile(splitFileName[0], splitFileName[1])
-    val fileOutputStream = FileOutputStream(tempFile)
-    val outputData: HashMap<File, Long> = HashMap()
     tempFile.deleteOnExit()
 
-    inputStream?.let {
-        copy(inputStream, fileOutputStream)
-        inputStream.close()
-    }
-    fileOutputStream.close()
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
 
-    // Set the data on the file
-    outputData[tempFile] = fileData.values.first()
+    val outputData: HashMap<File, String> = HashMap()
+
+    inputStream?.let {
+        val fileOutputStream = FileOutputStream(tempFile)
+        copy(it, fileOutputStream)
+        it.close()
+        fileOutputStream.close()
+    }
+    outputData[tempFile] = getHumanReadableSize(fileData.values.first(), context.resources)
     return outputData
 }
 
+/**
+ * This method gets the current file name and its size in bytes by using the [context] and the [uri] for the cursor
+ */
 private fun getFileData(context: Context, uri: Uri): Map<String, Long> {
-    var fileName: String? = null
+    var fileName = ""
     var fileSize = 0L
     val fileData: HashMap<String, Long> = HashMap()
-    // Get the current filename
+
     if (uri.scheme.equals("content")) {
         val cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
         try {
@@ -49,24 +62,13 @@ private fun getFileData(context: Context, uri: Uri): Map<String, Long> {
             cursor?.close()
         }
     }
-
-    // If the previous procedure fails, get the name from the uri path
-    if(fileName == null) {
-        fileName = uri.path
-        fileName?.let {
-            val cut = it.lastIndexOf(File.separator)
-            // If there is an occurrence, get the name without the first slash
-            if (cut != -1) {
-                fileName = it.substring(cut + 1)
-            }
-        }
-    }
-
-    // Set the data in a hashmap
-    fileData[fileName ?: ""] = fileSize
+    fileData[fileName] = fileSize
     return fileData
 }
 
+/**
+ * This method splits the file name to get its name and file extension if the [filename] has data
+ */
 private fun splitFileName(filename: String): Array<String> {
     var name = filename
     var extension = ""
@@ -79,9 +81,32 @@ private fun splitFileName(filename: String): Array<String> {
     return arrayOf(name, extension)
 }
 
+/**
+ * This method copy the file with [inputStream] to the temp file by using [fileOutputStream] to create it
+ */
 private fun copy(inputStream: InputStream, fileOutputStream: FileOutputStream) {
     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
     while (EOF != inputStream.read(buffer)) {
         fileOutputStream.write(buffer)
+    }
+}
+
+/**
+ * This method gets the [numberOfBytes] to parse it to be human readable by using [resources].
+ * The counter variable helps to select the correct size, so it starts by one because the minimum
+ * value bigger than Bytes is KB
+ * Source: https://programming.guide/java/formatting-byte-size-to-human-readable-format.html
+ */
+fun getHumanReadableSize(numberOfBytes: Long, resources: Resources): String {
+    return if (-(ONE_MB) < numberOfBytes && numberOfBytes < ONE_MB) {
+        String.format(resources.getString(R.string.actual_size), numberOfBytes, Size.Bytes.name)
+    } else {
+        var nob: Long = numberOfBytes
+        var counter = 1
+        while (nob <= -(MAX_NUMBER) || nob >= MAX_NUMBER) {
+            nob /= ONE_MB
+            counter++
+        }
+        String.format(resources.getString(R.string.actual_size), nob / ONE_MB.toDouble(), Size.values()[counter].name)
     }
 }

@@ -68,8 +68,7 @@ class MainFragment : Fragment() {
             try {
                 currentFile = from(context!!, data.data!!).also {
                     binding.originalImageView.setImageBitmap(loadBitmap(it.keys.first()))
-                    binding.originalSizeTextView.text =
-                        String.format(getString(R.string.actual_size), it.values.first())
+                    binding.originalSizeTextView.text = it.values.first()
                 }.keys.first()
             } catch (e: IOException) {
                 Crashlytics.logException(e)

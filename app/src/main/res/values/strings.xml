@@ -4,8 +4,8 @@
     <!-- MainFragment -->
 
     <!-- TextView -->
-    <string name="actual_size">Actual size: %dMB</string>
-    <string name="compressed_size">Compressed size: %dMB</string>
+    <string name="actual_size">Actual size: %1$.1f %2$s</string>
+    <string name="compressed_size">Compressed size: %1$.1f %2$s</string>
 
     <!-- Buttons -->
     <string name="load_convert_upload_image">Load, convert, and upload images</string>
