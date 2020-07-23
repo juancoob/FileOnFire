@@ -67,9 +67,9 @@ class MainFragment : Fragment() {
             }
             try {
                 currentFile = from(context!!, data.data!!).also {
-                    binding.originalImageView.setImageBitmap(loadBitmap(it.keys.first()))
-                    binding.originalSizeTextView.text = it.values.first()
-                }.keys.first()
+                    binding.originalImageView.setImageBitmap(loadBitmap(it.first))
+                    binding.originalSizeTextView.text = it.second
+                }.first
             } catch (e: IOException) {
                 Crashlytics.logException(e)
                 Toast.makeText(context, R.string.failed_read_picture, Toast.LENGTH_SHORT).show()
