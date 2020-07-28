@@ -53,7 +53,7 @@
         app:layout_constraintGuide_percent="0.50" />
 
     <ImageView
-        android:id="@+id/converted_image_View"
+        android:id="@+id/compressed_image_View"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:adjustViewBounds="true"
