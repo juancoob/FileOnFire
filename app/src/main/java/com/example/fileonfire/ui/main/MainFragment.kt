@@ -8,13 +8,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import com.bumptech.glide.Glide
 import com.crashlytics.android.Crashlytics
 import com.example.fileonfire.R
 import com.example.fileonfire.databinding.MainFragmentBinding
 import com.example.fileonfire.util.CHOOSE_IMAGE_REQUEST
 import com.example.fileonfire.util.from
-import id.zelory.compressor.loadBitmap
+import com.example.fileonfire.util.getHumanReadableSize
 import java.io.File
 import java.io.IOException
 
@@ -27,7 +29,8 @@ class MainFragment : Fragment() {
     private var _binding: MainFragmentBinding? = null
     private val binding
         get() = _binding!!
-    private lateinit var viewModel: MainViewModel
+
+    private val mainViewModel: MainViewModel by viewModels()
     private var currentFile: File? = null
 
     override fun onCreateView(
@@ -41,8 +44,6 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-
         binding.loadConvertUploadImageButton.setOnClickListener {
             chooseImage()
         }
@@ -66,14 +67,41 @@ class MainFragment : Fragment() {
                 return
             }
             try {
-                currentFile = from(context!!, data.data!!).also {
-                    binding.originalImageView.setImageBitmap(loadBitmap(it.first))
-                    binding.originalSizeTextView.text = it.second
-                }.first
+                showCurrentImage(data)
+                showCompressedImage()
             } catch (e: IOException) {
                 Crashlytics.logException(e)
                 Toast.makeText(context, R.string.failed_read_picture, Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    /**
+     * Shows the selected image and its size
+     */
+    private fun showCurrentImage(data: Intent) {
+        currentFile = from(requireContext(), data.data!!).also {
+            Glide.with(requireContext()).load(it.first)
+                .into(binding.originalImageView)
+            binding.originalSizeTextView.text = it.second
+        }.first
+    }
+
+    /**
+     * Shows the compressed image and its size
+     */
+    private fun showCompressedImage() {
+        currentFile?.let {
+            mainViewModel.convertFile(it)
+            mainViewModel.file.observe(viewLifecycleOwner, Observer {
+                Glide.with(requireContext()).load(it)
+                    .into(binding.compressedImageView)
+                binding.compressedSizeTextView.text = getHumanReadableSize(
+                    it.length(),
+                    requireContext().resources,
+                    R.string.compressed_size
+                )
+            })
         }
     }
 
