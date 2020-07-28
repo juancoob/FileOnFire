@@ -32,7 +32,7 @@ fun from(context: Context, uri: Uri): Pair<File, String> {
         it.close()
         fileOutputStream.close()
     }
-    return Pair(tempFile, getHumanReadableSize(fileData.second, context.resources))
+    return Pair(tempFile, getHumanReadableSize(fileData.second, context.resources, R.string.actual_size))
 }
 
 /**
@@ -85,14 +85,15 @@ private fun copy(inputStream: InputStream, fileOutputStream: FileOutputStream) {
 }
 
 /**
- * This method gets the [numberOfBytes] to parse it to be human readable by using [resources].
+ * This method gets the [numberOfBytes] to parse it to be human readable by using the [stringResource]
+ * from [resources].
  * The counter variable helps to select the correct size, so it starts by one because the minimum
  * value bigger than Bytes is KB
  * Source: https://programming.guide/java/formatting-byte-size-to-human-readable-format.html
  */
-fun getHumanReadableSize(numberOfBytes: Long, resources: Resources): String {
+fun getHumanReadableSize(numberOfBytes: Long, resources: Resources, stringResource: Int): String {
     return if (-(ONE_MB) < numberOfBytes && numberOfBytes < ONE_MB) {
-        String.format(resources.getString(R.string.actual_size), numberOfBytes, Size.Bytes.name)
+        String.format(resources.getString(stringResource), numberOfBytes, Size.Bytes.name)
     } else {
         var nob: Long = numberOfBytes
         var counter = 1
@@ -101,7 +102,7 @@ fun getHumanReadableSize(numberOfBytes: Long, resources: Resources): String {
             counter++
         }
         String.format(
-            resources.getString(R.string.actual_size),
+            resources.getString(stringResource),
             nob / ONE_MB.toDouble(),
             Size.values()[counter].name
         )
