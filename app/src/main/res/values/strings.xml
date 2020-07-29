@@ -1,15 +1,15 @@
 <resources>
-	<string name="app_name">FileOnFire</string>
+    <string name="app_name">FileOnFire</string>
 
-    <!-- MainFragment -->
+    <!-- Main menu -->
+    <string name="compress">Compress</string>
+    <string name="gallery">Gallery</string>
+
+    <!-- CompressFragment -->
 
     <!-- TextView -->
     <string name="actual_size">Actual size: %1$.1f %2$s</string>
     <string name="compressed_size">Compressed size: %1$.1f %2$s</string>
-
-    <!-- Buttons -->
-    <string name="load_convert_upload_image">Load, convert, and upload images</string>
-    <string name="load_convert_upload_video">Load, convert and upload video</string>
 
     <!-- Toasts -->
     <string name="failed_open_picture">Failed to open a picture</string>

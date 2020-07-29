@@ -1,5 +1,9 @@
 package com.example.fileonfire.util
 
+// View Pager
+const val DEFAULT_NUMBER_PAGES = 2
+const val PAGE_SELECTED = "pageSelected"
+
 // Requests
 const val CHOOSE_IMAGE_REQUEST = 1
 
