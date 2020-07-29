@@ -13,41 +13,40 @@ import androidx.lifecycle.Observer
 import com.bumptech.glide.Glide
 import com.crashlytics.android.Crashlytics
 import com.example.fileonfire.R
-import com.example.fileonfire.databinding.MainFragmentBinding
+import com.example.fileonfire.databinding.CompressionFragmentBinding
 import com.example.fileonfire.util.CHOOSE_IMAGE_REQUEST
 import com.example.fileonfire.util.from
 import com.example.fileonfire.util.getHumanReadableSize
-import java.io.File
 import java.io.IOException
 
-class MainFragment : Fragment() {
+/**
+ * This class manages the compression from the selected image
+ */
+class CompressionFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = MainFragment()
-    }
-
-    private var _binding: MainFragmentBinding? = null
+    private var _binding: CompressionFragmentBinding? = null
     private val binding
         get() = _binding!!
 
     private val mainViewModel: MainViewModel by viewModels()
-    private var currentFile: File? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = MainFragmentBinding.inflate(inflater, container, false)
+        _binding = CompressionFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        binding.loadConvertUploadImageButton.setOnClickListener {
+        binding.loadConvertUploadImageFab.setOnClickListener {
             chooseImage()
         }
-
+        if (savedInstanceState != null) {
+            restoreImages()
+        }
     }
 
     private fun chooseImage() {
@@ -80,10 +79,10 @@ class MainFragment : Fragment() {
      * Shows the selected image and its size
      */
     private fun showCurrentImage(data: Intent) {
-        currentFile = from(requireContext(), data.data!!).also {
-            Glide.with(requireContext()).load(it.first)
-                .into(binding.originalImageView)
+        mainViewModel.originalFile = from(requireContext(), data.data!!).also {
+            Glide.with(requireContext()).load(it.first).into(binding.originalImageView)
             binding.originalSizeTextView.text = it.second
+            mainViewModel.originalSize = it.second
         }.first
     }
 
@@ -91,17 +90,26 @@ class MainFragment : Fragment() {
      * Shows the compressed image and its size
      */
     private fun showCompressedImage() {
-        currentFile?.let {
+        mainViewModel.originalFile?.let {
             mainViewModel.convertFile(it)
-            mainViewModel.file.observe(viewLifecycleOwner, Observer {
-                Glide.with(requireContext()).load(it)
-                    .into(binding.compressedImageView)
+            mainViewModel.resultFile.observe(viewLifecycleOwner, Observer {
+                Glide.with(requireContext()).load(it).into(binding.compressedImageView)
                 binding.compressedSizeTextView.text = getHumanReadableSize(
                     it.length(),
                     requireContext().resources,
                     R.string.compressed_size
                 )
+                mainViewModel.resultSize = binding.compressedSizeTextView.text.toString()
             })
+        }
+    }
+
+    private fun restoreImages() {
+        mainViewModel.originalFile?.let {
+            Glide.with(requireContext()).load(it).into(binding.originalImageView)
+            binding.originalSizeTextView.text = mainViewModel.originalSize
+            Glide.with(requireContext()).load(mainViewModel.resultFile.value!!).into(binding.compressedImageView)
+            binding.compressedSizeTextView.text = mainViewModel.resultSize
         }
     }
 
