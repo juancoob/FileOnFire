@@ -1,3 +1,27 @@
 <resources>
-	<string name="app_name">FileOnFire</string>
+    <string name="app_name">FileOnFire</string>
+
+    <!-- Main menu -->
+    <string name="compress">Compress</string>
+    <string name="gallery">Gallery</string>
+
+    <!-- CompressFragment -->
+
+    <!-- TextView -->
+    <string name="actual_size">Actual size: %1$.1f %2$s</string>
+    <string name="compressed_size">Compressed size: %1$.1f %2$s</string>
+
+    <!-- Toasts -->
+    <string name="failed_open_picture">Failed to open a picture</string>
+    <string name="failed_read_picture">Failed to read a picture</string>
+
+    <!-- Content descriptions -->
+    <string name="original_image_to_compare">First image to compare</string>
+    <string name="compressed_image_to_compare">Second image to compare</string>
+
+
+    <!-- Gallery -->
+
+    <!-- Content descriptions -->
+    <string name="gallery_image">Gallery image</string>
 </resources>
