@@ -15,11 +15,18 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Stores the logic to compress an image with the power of coroutines
+ */
 class MainViewModel : ViewModel() {
 
-    val file: MutableLiveData<File> by lazy {
+    var originalFile: File? = null
+    var originalSize: String? = null
+
+    val resultFile: MutableLiveData<File> by lazy {
         MutableLiveData<File>()
     }
+    var resultSize: String? = null
 
     /**
      * Uses coroutines to get the compressed file
@@ -27,7 +34,7 @@ class MainViewModel : ViewModel() {
     fun convertFile(currentFile: File) {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
-                file.value = compressImage(currentFile)
+                resultFile.value = compressImage(currentFile)
             }
         }
     }
@@ -92,7 +99,8 @@ class MainViewModel : ViewModel() {
     /**
      * Overwrites the current file [currentFile] by using a WEBP mime type [format] by default because it can support
      * both lossy and lossless modes, making it an ideal replacement for both PNG and JPG.
-     * It calls [saveBitmap] with [resultBitmap] and the default [quality] too
+     * It calls [saveBitmap] with [resultBitmap] and the default [quality] too.
+     * To remove the original file, you should call currentFile.delete() under the val assignation
      */
     private fun overwriteFile(
         currentFile: File,
@@ -105,7 +113,6 @@ class MainViewModel : ViewModel() {
         } else {
             File("${currentFile.absolutePath.substringBeforeLast(".")}.${WEBP_MIME_TYPE}")
         }
-        currentFile.delete()
         saveBitmap(resultBitmap, resultFile, format, quality)
         return resultFile
     }
