@@ -19,3 +19,9 @@ const val DEFAULT_HEIGHT = 816
 
 // MYME TYPE
 const val WEBP_MIME_TYPE = "webp"
+
+// PATHS
+const val DEFAULT_PATH = "images/"
+
+// WIDGETS STATE
+const val GALLERY_STATE = "galleryState"
