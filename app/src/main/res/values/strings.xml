@@ -15,12 +15,17 @@
     <string name="failed_open_picture">Failed to open a picture</string>
     <string name="failed_read_picture">Failed to read a picture</string>
 
+    <!-- Snackbars -->
+    <string name="image_not_listed">Uh oh, compressed image not listed</string>
+    <string name="image_listed">Compressed image sent to the gallery!</string>
+
     <!-- Content descriptions -->
     <string name="original_image_to_compare">First image to compare</string>
     <string name="compressed_image_to_compare">Second image to compare</string>
 
 
     <!-- Gallery -->
+    <string name="something_happened">Uh oh, images can not be downloaded</string>
 
     <!-- Content descriptions -->
     <string name="gallery_image">Gallery image</string>
